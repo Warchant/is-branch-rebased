@@ -6,11 +6,10 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-ctx  = GithubContext(
-    token="",
-    owner="",
-    repo="",
-    base=""
+ctx = GithubContext(
+        token="",
+        owner="",
+        repo=""
     )
 
 checker = RebaseChecker(ctx)

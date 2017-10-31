@@ -9,7 +9,6 @@ class GithubContext:
         # mandatory args        
         self.owner = kwargs["owner"]
         self.repo  = kwargs["repo"]
-        self.base  = kwargs["base"]
         self.token = kwargs["token"]
 
         # optional args
@@ -23,6 +22,4 @@ class GithubContext:
         self.rebased = value_or_default(kwargs, "rebased", 
             "rebased")
         self.not_rebased = value_or_default(kwargs, "not_rebased", 
-            "rebase onto {0}: git rebase -i origin/{0}".format(self.base))
-
-        self.label = "{0}:{1}".format(self.owner, self.base)
+            "not rebased")

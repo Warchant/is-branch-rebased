@@ -1,11 +1,9 @@
 from common import GithubCommon
-from context import GithubContext 
-import json
 
 class RebaseChecker:
     def __init__(self, context):
         self.context = context
-        self.common = GithubCommon(self.context)
+        self.github = GithubCommon(self.context)
 
     # data - parsed json, which we receive from github after
     # any PR update
@@ -13,10 +11,11 @@ class RebaseChecker:
         pr = data["pull_request"]
         prhead = pr["head"]
         prbase = pr["base"]
+        prbase_ref = prbase["ref"]
         prbase_sha = prbase["sha"]
         prhead_sha = prhead["sha"]
 
-        base = self.common.get_latest_branch(self.context.base)
+        base = self.github.get_branch(prbase_ref)
         base_sha = base["commit"]["sha"]
 
         self.__update_status(prhead_sha, base_sha == prbase_sha)
@@ -25,38 +24,39 @@ class RebaseChecker:
     def after_push(self, data):
         ref = data["ref"]
         branch = ref.replace("refs/heads/", "")
+        label = "{0}:{1}".format(
+            self.context.owner.lower(),
+            branch
+        )
 
         print("received push to {0}".format(branch))
 
-        if branch == self.context.base:
-            # we should update all pull requests' statuses
-            base_sha_after = data["after"]
+        # we should update all pull requests' statuses
+        base_sha_after = data["after"]
 
-            prs = self.common.get_open_pull_requests()
-            for pr in prs:
-                base = pr["base"]
-                html = pr["_links"]["html"]["href"]
-                base_label = base["label"]
+        prs = self.github.get_open_pull_requests()
+        for pr in prs:
+            base = pr["base"]
+            link = pr["_links"]["html"]["href"]
+            pr_base_label = base["label"].lower()
 
-                # if pr base is not "base" stored in context, then ignore this pull request
-                if base_label.lower() != self.context.label:
-                    print("pr {0} has label {1}, not {2}".format(
-                        html,
-                        base_label.lower(),
-                        self.context.label
-                    ))
-                    continue
+            # if pr base is not "base" stored in context, then ignore this pull request
+            if pr_base_label != label:
+                print("pr {0} has label {1}, not {2}".format(
+                    link,
+                    pr_base_label,
+                    label
+                ))
+                continue
 
-                head = pr["head"]
-                head_sha = head["sha"]
-                base_sha = base["sha"]
+            head = pr["head"]
+            head_sha = head["sha"]
+            base_sha = base["sha"]
 
-                self.__update_status(head_sha, base_sha == base_sha_after)
+            self.__update_status(head_sha, base_sha == base_sha_after)
 
-
-
-    async def __update_status(self, sha, status):
-        ok = self.common.set_commit_status(sha, status)
+    def __update_status(self, sha, status):
+        ok = self.github.set_commit_status(sha, status)
         print("status for {0} ".format(sha), end="")
         if ok:
             print("updated: {0}".format(status))

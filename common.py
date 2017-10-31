@@ -11,7 +11,8 @@ class GithubCommon:
     def __init__(self, context):
         self.context = context
 
-    def get_latest_branch(self, branch):
+    # branch: name of the branch
+    def get_branch(self, branch):
         r = requests.get("{api}/repos/{owner}/{repo}/branches/{branch}"
             .format(
                 api=self.context.github_api,
@@ -26,13 +27,14 @@ class GithubCommon:
 
     # sha: sha hash of commit
     # status_ok: True/False
-    def set_commit_status(self, sha, status_ok):
+    # desc_extention: additional text to "rebased/not rebased"
+    def set_commit_status(self, sha, status_ok, desc_extention=""):
         if status_ok:
             state = State.success
-            desc = self.context.rebased
+            desc = self.context.rebased + desc_extention
         else:
             state = State.error
-            desc = self.context.not_rebased
+            desc = self.context.not_rebased + desc_extention
 
         data = {
             "state": state,
