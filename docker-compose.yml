@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  branch-rebased-webhook:
+    build:
+      context: .
+    container_name: branch-rebased-webhook
+    ports:
+      - 8083:12345
+    tty: true
+    environment:
+      - TOKEN=""
+      - OWNER=""
+      - REPO=""
+    volumes:
+      - ./:/app
