@@ -1,15 +1,29 @@
 #!/usr/bin/env python3
 
+import os
 from context import GithubContext
-from rebase_checker import RebaseChecker 
+from rebase_checker import RebaseChecker
 from flask import Flask, request
 
 app = Flask(__name__)
 
+try:
+    token = os.environ['TOKEN']
+except KeyError:
+    token = ""
+try:
+    owner = os.environ['OWNER']
+except KeyError:
+    owner = ""
+try:
+    repo = os.environ['REPO']
+except KeyError:
+    repo = ""
+
 ctx = GithubContext(
-        token="",
-        owner="",
-        repo=""
+        token=token,
+        owner=owner,
+        repo=repo
     )
 
 checker = RebaseChecker(ctx)
